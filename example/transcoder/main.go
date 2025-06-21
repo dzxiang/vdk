@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
-	"github.com/deepch/vdk/format/rtspv2"
-	"github.com/deepch/vdk/format/ts"
 	"log"
 	"os/exec"
 	"time"
+
+	"github.com/dzxiang/vdk/format/rtspv2"
+	"github.com/dzxiang/vdk/format/ts"
 )
 
 func main() {

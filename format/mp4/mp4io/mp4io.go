@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/deepch/vdk/utils/bits/pio"
+	"github.com/dzxiang/vdk/utils/bits/pio"
 )
 
 type ParseError struct {
@@ -389,7 +389,7 @@ func ReadFileAtoms(r io.ReadSeeker) (atoms []Atom, err error) {
 		size := pio.U32BE(taghdr[0:])
 		if size > 5242880 {
 			err = parseErr("len", 5242880, err)
-			return 
+			return
 		}
 		tag := Tag(pio.U32BE(taghdr[4:]))
 

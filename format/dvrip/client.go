@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/deepch/vdk/av"
-	"github.com/deepch/vdk/codec"
-	"github.com/deepch/vdk/codec/h264parser"
+	"github.com/dzxiang/vdk/av"
+	"github.com/dzxiang/vdk/codec"
+	"github.com/dzxiang/vdk/codec/h264parser"
 )
 
 const (
@@ -47,7 +47,7 @@ type ClientOptions struct {
 	DisableAudio     bool
 }
 
-//Dial func
+// Dial func
 func Dial(options ClientOptions) (*Client, error) {
 	client := &Client{
 		Signals:             make(chan int, 100),
@@ -78,13 +78,13 @@ func Dial(options ClientOptions) (*Client, error) {
 	return client, nil
 }
 
-//Close func
+// Close func
 func (client *Client) Close() error {
 	err := client.conn.Close()
 	return err
 }
 
-//SetKeepAlive func
+// SetKeepAlive func
 func (client *Client) SetKeepAlive() error {
 	body, err := json.Marshal(map[string]string{
 		"Name":      "KeepAlive",
@@ -100,7 +100,7 @@ func (client *Client) SetKeepAlive() error {
 	return nil
 }
 
-//Monitor func
+// Monitor func
 func (client *Client) Monitor() {
 	defer func() {
 		client.Signals <- SignalStreamStop
@@ -321,7 +321,7 @@ func (client *Client) Login() error {
 	return nil
 }
 
-//Command func
+// Command func
 func (client *Client) Command(command requestCode, data interface{}) (*Payload, []byte, error) {
 	params, err := json.Marshal(map[string]interface{}{
 		"Name":                requestCodes[command],
@@ -339,7 +339,7 @@ func (client *Client) Command(command requestCode, data interface{}) (*Payload, 
 	return resp, body, err
 }
 
-//send func
+// send func
 func (client *Client) send(msgID requestCode, data []byte) error {
 	var buf bytes.Buffer
 	if err := binary.Write(&buf, binary.LittleEndian, Payload{
@@ -372,7 +372,7 @@ func (client *Client) send(msgID requestCode, data []byte) error {
 	return nil
 }
 
-//recvSize func
+// recvSize func
 func (client *Client) recvSize(buffer *bytes.Buffer, size uint32) ([]byte, error) {
 	all := uint32(0)
 	for {
@@ -391,7 +391,7 @@ func (client *Client) recvSize(buffer *bytes.Buffer, size uint32) ([]byte, error
 	return nil, nil
 }
 
-//recv func
+// recv func
 func (client *Client) recv(text bool) (*Payload, []byte, error) {
 	var p Payload
 	var b = make([]byte, 20)
@@ -422,7 +422,7 @@ func (client *Client) recv(text bool) (*Payload, []byte, error) {
 	return &p, body, nil
 }
 
-//parseURL func
+// parseURL func
 func (client *Client) parseURL(rawURL string) error {
 	l, err := url.Parse(rawURL)
 	if err != nil {

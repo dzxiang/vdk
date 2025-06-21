@@ -4,15 +4,17 @@ import (
 	"bytes"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
-	"github.com/deepch/vdk/codec/h264parser"
+	"github.com/dzxiang/vdk/codec/h264parser"
+	"github.com/dzxiang/vdk/codec/h265parser"
 
-	"github.com/deepch/vdk/av"
+	"github.com/dzxiang/vdk/av"
 	"github.com/pion/interceptor"
-	"github.com/pion/webrtc/v3"
-	"github.com/pion/webrtc/v3/pkg/media"
+	"github.com/pion/webrtc/v4"
+	"github.com/pion/webrtc/v4/pkg/media"
 )
 
 var (
@@ -123,6 +125,26 @@ func (element *Muxer) WriteHeader(streams []av.CodecData, sdp64 string) (string,
 			if i2.Type() == av.H264 {
 				track, err = webrtc.NewTrackLocalStaticSample(webrtc.RTPCodecCapability{
 					MimeType: webrtc.MimeTypeH264,
+				}, "pion-rtsp-video", "pion-video")
+				if err != nil {
+					return "", err
+				}
+				if rtpSender, err := peerConnection.AddTrack(track); err != nil {
+					return "", err
+				} else {
+					go func() {
+						rtcpBuf := make([]byte, 1500)
+						for {
+							if _, _, rtcpErr := rtpSender.Read(rtcpBuf); rtcpErr != nil {
+								return
+							}
+						}
+					}()
+				}
+			}
+			if i2.Type() == av.H265 {
+				track, err = webrtc.NewTrackLocalStaticSample(webrtc.RTPCodecCapability{
+					MimeType: webrtc.MimeTypeH265,
 				}, "pion-rtsp-video", "pion-video")
 				if err != nil {
 					return "", err
@@ -256,15 +278,46 @@ func (element *Muxer) WritePacket(pkt av.Packet) (err error) {
 			}
 			WritePacketSuccess = true
 			return
-			/*
-
-				if pkt.IsKeyFrame {
-					pkt.Data = append([]byte{0, 0, 0, 1}, bytes.Join([][]byte{codec.SPS(), codec.PPS(), pkt.Data[4:]}, []byte{0, 0, 0, 1})...)
-				} else {
-					pkt.Data = pkt.Data[4:]
+		case av.H265:
+			nalus, _ := h265parser.SplitNALUs(pkt.Data)
+			for _, nalu := range nalus {
+				nalType := (nalu[0] >> 1) & 0x3F
+				codec, ok := tmp.codec.(h265parser.CodecData)
+				if !ok {
+					log.Println("invalid H265 codec data")
+					return fmt.Errorf("invalid H265 codec data")
 				}
 
-			*/
+				var data []byte
+				if nalType == 19 || nalType == 20 {
+					// 构建参数集
+					if vps := codec.VPS(); len(vps) > 0 {
+						data = append(data, []byte{0, 0, 0, 1}...)
+						data = append(data, vps...)
+					}
+					if sps := codec.SPS(); len(sps) > 0 {
+						data = append(data, []byte{0, 0, 0, 1}...)
+						data = append(data, sps...)
+					}
+					if pps := codec.PPS(); len(pps) > 0 {
+						data = append(data, []byte{0, 0, 0, 1}...)
+						data = append(data, pps...)
+					}
+				}
+				// 添加当前NAL单元
+				data = append(data, []byte{0, 0, 0, 1}...)
+				data = append(data, nalu...)
+
+				if err = tmp.track.WriteSample(media.Sample{
+					Data:     data,
+					Duration: pkt.Duration,
+				}); err != nil {
+					log.Println("failed to write sample: %w", err)
+					return fmt.Errorf("failed to write sample: %w", err)
+				}
+			}
+			WritePacketSuccess = true
+			return
 		case av.PCM_ALAW:
 		case av.OPUS:
 		case av.PCM_MULAW:

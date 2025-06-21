@@ -3,8 +3,8 @@ package mkv
 import (
 	"io"
 
-	"github.com/deepch/vdk/av"
-	"github.com/deepch/vdk/av/avutil"
+	"github.com/dzxiang/vdk/av"
+	"github.com/dzxiang/vdk/av/avutil"
 )
 
 var CodecTypes = []av.CodecType{av.H264, av.AAC}

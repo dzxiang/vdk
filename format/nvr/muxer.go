@@ -6,16 +6,17 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"github.com/deepch/vdk/av"
-	"github.com/deepch/vdk/codec/aacparser"
-	"github.com/deepch/vdk/codec/h264parser"
-	"github.com/deepch/vdk/format/mp4"
-	"github.com/google/uuid"
-	"github.com/shirou/gopsutil/v3/disk"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/dzxiang/vdk/av"
+	"github.com/dzxiang/vdk/codec/aacparser"
+	"github.com/dzxiang/vdk/codec/h264parser"
+	"github.com/dzxiang/vdk/format/mp4"
+	"github.com/google/uuid"
+	"github.com/shirou/gopsutil/v3/disk"
 )
 
 var MIME = []byte{11, 22, 111, 222, 11, 22, 111, 222}

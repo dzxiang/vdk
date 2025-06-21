@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/deepch/vdk/utils/bits/pio"
+	"github.com/dzxiang/vdk/utils/bits/pio"
 )
 
 const MOOF = Tag(0x6d6f6f66)
